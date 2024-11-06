@@ -52,7 +52,18 @@ class Elex_Price_Discount_Admin {
 			add_filter( 'woocommerce_is_purchasable', array( &$this, 'elex_rp_is_product_purchasable' ), 10, 2 ); //to hide add to cart button when price is hidden
 			add_filter( 'woocommerce_loop_add_to_cart_link', array( $this, 'elex_rp_add_to_cart_text_url_replace' ), 1, 2 ); //to replace add to cart with user defined url
 			add_filter( 'woocommerce_product_single_add_to_cart_text', array( $this, 'elex_rp_add_to_cart_text_content_replace' ), 1, 1 ); //to replace add to cart with user defined placeholder text for product page
-			add_filter( 'woocommerce_get_price_html', array( $this, 'elex_rp_get_price_html' ), 999, 2 ); //to modify display for various options of settings page
+			/**
+			 * Modify the price HTML display based on plugin activation.
+			 * 
+			 * Hook: 'woocommerce_get_price_html'
+			 *
+			 * @since 2.9.7
+			 */
+			$is_price_history_active = in_array( 'wc-price-history/plugin.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
+			// Set the priority based on whether the plugin is active
+			$priority = $is_price_history_active ? 1 : 99;
+			// Add the filter with the appropriate priority
+			add_filter( 'woocommerce_get_price_html', array( $this, 'elex_rp_get_price_html' ), $priority, 2 );
 
 			//------------
 			add_filter( 'woocommerce_product_is_on_sale', array( $this, 'elex_rp_product_is_on_sale' ), 99, 2 );
@@ -491,11 +502,11 @@ class Elex_Price_Discount_Admin {
 	}
 
 	public function elex_rp_get_price( $price = '', $product = null ) {
-		 //change backend order product price for specific roles
+		//change backend order product price for specific roles
 		$temp_price = $price;
 		if ( isset( $_POST['security'] ) && isset( $_POST['order_id'] ) && wp_verify_nonce( sanitize_text_field( $_POST['security'] ), 'order-item' ) ) {
 			$order = wc_get_order( sanitize_text_field( $_POST['order_id'] ) );
-			$user_id = $order->get_user_id();
+			$user_id = $order->get_customer_id();
 			if ( $user_id ) {
 				$user_meta = get_userdata( $user_id );
 				$user_roles = $user_meta->roles;
@@ -592,8 +603,17 @@ class Elex_Price_Discount_Admin {
 				}   
 			
 				if ( is_array( $role_value ) && ! empty( $role_value ) ) {
+					$decimal_separator = wc_get_price_decimal_separator();
+					if ( ',' === $decimal_separator ) {
+						$role_value = array_map(
+							function( $value ) {
+							return floatval( str_replace( ',', '.', $value ) );
+							},
+							$role_value
+						);
+					}
 					 asort( $role_value );
-					 $min_role_price = current( $role_value );
+					 $min_role_price = current( $role_value ); 
 					 $max_role_price = end( $role_value );
 		
 					if ( 'max_role_price' === $multiple_role_option ) {
@@ -642,14 +662,18 @@ class Elex_Price_Discount_Admin {
 				}
 				if ( is_plugin_active( 'woocommerce-multilingual/wpml-woocommerce.php' ) && wcml_is_multi_currency_on() ) {
 					global $woocommerce_wpml;
+					if ( isset( $woocommerce_wpml->settings['enable_multi_currency'] ) && 1 === $woocommerce_wpml->settings['enable_multi_currency'] ) {
 
-					$current_currency = $woocommerce_wpml->multi_currency->get_client_currency();
-					$store_currency = get_option( 'woocommerce_currency' );
+						$current_currency = $woocommerce_wpml->multi_currency->get_client_currency();
+						$store_currency = get_option( 'woocommerce_currency' );
 
-					$exchange_rate = $woocommerce_wpml->multi_currency->get_exchange_rates( $store_currency , $current_currency );
-					$converted_price = $price * $exchange_rate[ $current_currency ];
+						$exchange_rate = $woocommerce_wpml->multi_currency->get_exchange_rates( $store_currency , $current_currency );
+						$converted_price = $price * $exchange_rate[ $current_currency ];
 
-					return $converted_price;
+						return $converted_price;
+					} else {
+						return $price;
+					}
 				}
 				return $price;
 			}
