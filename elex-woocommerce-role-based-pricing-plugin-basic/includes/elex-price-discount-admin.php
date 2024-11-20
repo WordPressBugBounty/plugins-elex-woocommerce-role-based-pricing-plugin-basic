@@ -1159,6 +1159,9 @@ class Elex_Price_Discount_Admin {
 
 	public function elex_rp_get_price_html( $price, $product ) {
 		global $wpdb;
+		if ( empty( $product->get_price() ) ) {
+			return '';
+		}
 		if ( $this->elex_rp_get_product_type( $product ) === 'simple' ) {
 			$pid = $this->elex_rp_get_product_id( $product ); 
 			$reg_price = $wpdb->get_var( $wpdb->prepare( "SELECT meta_value    FROM {$wpdb->postmeta}    WHERE post_id = %d    AND meta_key = '_regular_price'", $pid ) );
@@ -1256,7 +1259,7 @@ class Elex_Price_Discount_Admin {
 
 
 	public function elex_rp_is_product_purchasable( $is_purchasable, $product ) {
-		if ( $this->elex_rp_is_hide_price( $product ) === true ) {
+		if ( $this->elex_rp_is_hide_price( $product ) === true || empty( $product->get_price() ) ) {
 			return false;
 		} else {
 			return true;
