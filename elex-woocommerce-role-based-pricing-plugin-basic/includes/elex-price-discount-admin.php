@@ -1159,7 +1159,7 @@ class Elex_Price_Discount_Admin {
 
 	public function elex_rp_get_price_html( $price, $product ) {
 		global $wpdb;
-		if ( '' === $product->get_price() || null === $product->get_price() ) {
+		if ( 'gift-card' !== $this->elex_rp_get_product_type( $product ) && ( '' === $product->get_price() || null === $product->get_price() ) ) {
 			return '';
 		} 
 		if ( $this->elex_rp_get_product_type( $product ) === 'simple' ) {
@@ -1259,7 +1259,7 @@ class Elex_Price_Discount_Admin {
 
 
 	public function elex_rp_is_product_purchasable( $is_purchasable, $product ) {
-		if ( $this->elex_rp_is_hide_price( $product ) === true || '' === $product->get_price() || null === $product->get_price() ) {
+		if ( $this->elex_rp_is_hide_price( $product ) === true || 'gift-card' !== $this->elex_rp_get_product_type( $product ) && ( '' === $product->get_price() || null === $product->get_price() ) ) {
 			return false;
 		} else {
 			return true;
