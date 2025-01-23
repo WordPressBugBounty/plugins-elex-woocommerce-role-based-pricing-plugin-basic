@@ -3,7 +3,7 @@ Contributors: ELEXtensions
 Tags: role based pricing, dynamic pricing, wholesale pricing, prices by user role, hide price
 Requires at least: 3.0.1
 Tested up to: 6.7
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,11 @@ We are a group of WordPress and WooCommerce enthusiasts with a vision to solve g
 If you are facing any issues, please create a topic at plugin support section on WordPress org. Our team will respond back soon.
 
 == Changelog ==
+= 1.5.3 =
+Important notice: As mentioned in version 1.4.9, role-based pricing will be temporarily applied to variable products. However, this feature may not be available in future versions as it is a premium feature and will no longer be supported starting from version 1.5.3
+* Tested OK with WooCommerce 9.6
+* Added a user role-based pricing feature
+
 = 1.5.2 =
 * Made Compatible with YITH Woocommerce Gift Cards plugin
 
@@ -124,7 +129,6 @@ If you are facing any issues, please create a topic at plugin support section on
 * Fixed issue with backend order creation with user role price
 * Fixed Compatibility issue with WC Price History Plugin
 * Fixed issue with Multicurrency Plugin
-
 
 = 1.4.10 =
 * Fixed discount not working with Product Table for WooCommerce by CodeAstrology (WooproductTable)
@@ -201,7 +205,6 @@ If you are facing any issues, please create a topic at plugin support section on
 
 = 1.2.9 =
 * Tested OK with WooCommerce 6.4
-
 
 = 1.2.8 =
 * Fixed User role discount issue at the backend order
@@ -302,6 +305,11 @@ If you are facing any issues, please create a topic at plugin support section on
 * Initial Push
 
 == Upgrade Notice ==
+= 1.5.3 =
+Important notice: As mentioned in version 1.4.9, role-based pricing will be temporarily applied to variable products. However, this feature may not be available in future versions as it is a premium feature and will no longer be supported starting from version 1.5.3
+* Tested OK with WooCommerce 9.6
+* Added a user role-based pricing feature
+
 = 1.5.2 =
 * Made Compatible with YITH Woocommerce Gift Cards plugin
 
@@ -321,7 +329,6 @@ If you are facing any issues, please create a topic at plugin support section on
 * Fixed issue with backend order creation with user role price
 * Fixed Compatibility issue with WC Price History Plugin
 * Fixed issue with Multicurrency Plugin
-
 
 = 1.4.10 =
 * Fixed discount not working with Product Table for WooCommerce by CodeAstrology (WooproductTable)
@@ -398,7 +405,6 @@ If you are facing any issues, please create a topic at plugin support section on
 
 = 1.2.9 =
 * Tested OK with WooCommerce 6.4
-
 
 = 1.2.8 =
 * Fixed User role discount issue at the backend order

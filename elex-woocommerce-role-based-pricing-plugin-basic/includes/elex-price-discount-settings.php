@@ -764,6 +764,20 @@ class Elex_Pricing_Discount_Settings extends WC_Settings_Page {
 				}
 			}
 		}
+		$woocommerce_price_field_user = ( ! empty( $_POST['product_role_based_price_user'] ) ) ? map_deep( wp_unslash( $_POST['product_role_based_price_user'] ) , 'sanitize_text_field' ) : '';
+	   
+		$product->update_meta_data( 'product_role_based_price_user', $woocommerce_price_field_user );
+		if ( $woocommerce_price_field_user ) {
+			
+			foreach ( $woocommerce_price_field_user as $key => $val ) {
+				if ( ! is_array( $val ) ) {
+					$val = array( $val );
+				}
+				if ( array_key_exists( 'role_price', $val ) ) {
+				 $product->update_meta_data( 'product_role_based_price_user_' . $key, $woocommerce_price_field_user[ $key ]['role_price'] );
+				}
+			}
+		}
 		$product->save();
 	}
 

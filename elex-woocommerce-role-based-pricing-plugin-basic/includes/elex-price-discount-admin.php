@@ -9,6 +9,8 @@ class Elex_Price_Discount_Admin {
 		public $sales_method;
 		public $role_price_adjustment;
 		public $current_user_role; 
+		public $current_user_mail; 
+		public $user_id;
 		public $multiple_user_roles  ;
 		public $enable_role_tax ;
 		public $role_tax_option ;
@@ -361,6 +363,8 @@ class Elex_Price_Discount_Admin {
 	public function init_fields() {
 		$this->role_price_adjustment = get_option( 'eh_pricing_discount_price_adjustment_options', array() );
 		$this->current_user_role = $this->elex_rp_get_priority_user_role( wp_get_current_user()->roles, $this->role_price_adjustment );
+		$this->current_user_mail = wp_get_current_user()->user_email;
+		$this->user_id = get_current_user_id();
 		$this->multiple_user_roles = ! empty( wp_get_current_user()->roles ) ? wp_get_current_user()->roles : array( 'unregistered_user' );
 		$this->enable_role_tax = get_option( 'eh_pricing_discount_enable_tax_options' ) === 'yes' ? true : false;
 		$this->role_tax_option = get_option( 'eh_pricing_discount_price_tax_options', array() );
@@ -506,17 +510,18 @@ class Elex_Price_Discount_Admin {
 		$temp_price = $price;
 		if ( isset( $_POST['security'] ) && isset( $_POST['order_id'] ) && wp_verify_nonce( sanitize_text_field( $_POST['security'] ), 'order-item' ) ) {
 			$order = wc_get_order( sanitize_text_field( $_POST['order_id'] ) );
-			$user_id = $order->get_customer_id();
-			if ( $user_id ) {
-				$user_meta = get_userdata( $user_id );
+			$this->user_id = $order->get_customer_id();
+			if ( $this->user_id ) {
+				$user_meta = get_userdata( $this->user_id );
 				$user_roles = $user_meta->roles;
 				$this->multiple_user_roles = $user_roles;
+				$this->current_user_mail = $user_meta->user_email;
 				$this->current_user_role = $user_roles[0];
 			}
 		}
 		
-	
-		$current_user_id = get_current_user_id();
+		$current_user_email = $this->current_user_mail;
+
 		if ( doing_filter( 'woocommerce_get_cart_item_from_session' ) ) {
 			return $price;
 		}
@@ -533,6 +538,9 @@ class Elex_Price_Discount_Admin {
 			return $price;
 		}
 
+		if ( $this->elex_rp_get_product_type( $product ) !== 'simple' ) {
+			return $price;
+		}
 		
 		//If decimal seperator is ',' and thousand seperator is '.'
 		$dec_seperator = wc_get_price_decimal_separator();
@@ -579,14 +587,16 @@ class Elex_Price_Discount_Admin {
 			}
 		}
 
-		if ( is_array( $this->individual_product_adjustment_roles ) && ( in_array( $this->current_user_role, $this->individual_product_adjustment_roles ) || ! empty( array_diff( $this->multiple_user_roles, $this->individual_product_adjustment_roles ) ) ) ) {
+		if ( ( is_array( $this->individual_product_adjustment_roles ) || is_array( $this->individual_product_adjustment_for_users ) ) && ( in_array( $this->current_user_role, $this->individual_product_adjustment_roles ) || ! empty( array_diff( $this->multiple_user_roles, $this->individual_product_adjustment_roles ) ) || ! empty( $product->get_meta( 'product_role_based_price_user_' . $current_user_email ) ) ) ) {
 		
 			$count_multiple_role = count( $this->multiple_user_roles );
 			$multiple_role_option = get_option( 'eh_pricing_discount_multiple_role_price' );
 			$role_value = array();
 			$product_user_price = $product->get_meta( 'product_role_based_price_' . $this->current_user_role );
-		
-			if ( $count_multiple_role > 1 ) {
+			$product_users_price = ! empty( $product->get_meta( 'product_role_based_price_user_' . $current_user_email ) ) ? $product->get_meta( 'product_role_based_price_user_' . $current_user_email ) : '';
+			if ( is_array( $this->individual_product_adjustment_for_users ) && ! empty( $this->individual_product_adjustment_for_users ) && ! empty( $product_users_price[0] ) ) { 
+				$product_user_price = $product_users_price;
+			} elseif ( $count_multiple_role > 1 ) {
 			 $consolidate_price = 0;
 			
 				foreach ( $this->multiple_user_roles as $multiple_role_key => $multiple_role_val ) {
@@ -776,7 +786,7 @@ class Elex_Price_Discount_Admin {
 	
 	public function elex_rp_get_adjustment_for_individual_products( $pid, $price ) {
 		$adjustment_value = 0;
-		$current_user_id = get_current_user_id();
+		$current_user_id = $this->user_id;
 		$product = wc_get_product( $pid );
 		$product_price_adjustment_users = $product->get_meta( 'product_price_adjustment_for_users' );
 		$product_price_adjustment_roles = $product->get_meta( 'product_price_adjustment' );
@@ -812,7 +822,7 @@ class Elex_Price_Discount_Admin {
 	}
 	public function elex_rp_get_adjustment_amount( $price, $prdct_id, $temp_data, $adjustment_value ) {
 		$common_price_adjustment_table = ! empty( get_option( 'eh_pricing_discount_price_adjustment_options' ) ) ? array_values( get_option( 'eh_pricing_discount_price_adjustment_options', array() ) ) : array();
-		$current_user_id = get_current_user_id();
+		$current_user_id = $this->user_id;
 		$multiple_role_option = get_option( 'eh_pricing_discount_multiple_role_price' );
 		$multiple_roles = $this->multiple_user_roles;
 		$rule_satisfied = false;
@@ -966,9 +976,7 @@ class Elex_Price_Discount_Admin {
 				}
 			} else {
 				foreach ( $common_price_adjustment_table as $key => $value ) {
-					
-					if ( isset( $common_price_adjustment_table[ $key ] ) && ( ( isset( $value['users'] ) && in_array( get_current_user_id(), $value['users'] ) ) || ( ! isset( $value['users'] ) && isset( $value['roles'] ) && in_array( $multiple_roles[0], $value['roles'] ) ) ) ) {                           
-					
+					if ( isset( $common_price_adjustment_table[ $key ] ) && ( ( isset( $value['users'] ) && in_array( $current_user_id, $value['users'] ) ) || ( ! isset( $value['users'] ) && isset( $value['roles'] ) && in_array( $multiple_roles[0], $value['roles'] ) ) ) ) {                           
 						$current_user_product_rule = $common_price_adjustment_table[ $key ];
 						if ( isset( $current_user_product_rule['role_price'] ) && 'on' === $current_user_product_rule['role_price'] ) {
 							if ( ! empty( $multiple_role_option ) && ! empty( $value['users'] ) && ! isset( $value['roles'] ) ) {
