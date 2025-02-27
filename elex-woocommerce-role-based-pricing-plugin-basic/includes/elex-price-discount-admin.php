@@ -787,7 +787,11 @@ class Elex_Price_Discount_Admin {
 	public function elex_rp_get_adjustment_for_individual_products( $pid, $price ) {
 		$adjustment_value = 0;
 		$current_user_id = $this->user_id;
+
 		$product = wc_get_product( $pid );
+		if ( ! $product || ! is_object( $product ) ) { 
+			return 'no_amount';
+		}
 		$product_price_adjustment_users = $product->get_meta( 'product_price_adjustment_for_users' );
 		$product_price_adjustment_roles = $product->get_meta( 'product_price_adjustment' );
 		$current_user_product_rule = '';
