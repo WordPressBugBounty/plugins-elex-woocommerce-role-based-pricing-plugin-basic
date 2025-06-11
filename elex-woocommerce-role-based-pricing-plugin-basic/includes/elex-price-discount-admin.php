@@ -980,7 +980,8 @@ class Elex_Price_Discount_Admin {
 				}
 			} else {
 				foreach ( $common_price_adjustment_table as $key => $value ) {
-					if ( isset( $common_price_adjustment_table[ $key ] ) && ( ( isset( $value['users'] ) && in_array( $current_user_id, $value['users'] ) ) || ( ! isset( $value['users'] ) && isset( $value['roles'] ) && in_array( $multiple_roles[0], $value['roles'] ) ) ) ) {                           
+					$rolevalue = reset( $multiple_roles );
+					if ( isset( $common_price_adjustment_table[ $key ] ) && ( ( isset( $value['users'] ) && in_array( $current_user_id, $value['users'] ) ) || ( ! isset( $value['users'] ) && isset( $value['roles'] ) && in_array( $rolevalue, $value['roles'] ) ) ) ) {                           
 						$current_user_product_rule = $common_price_adjustment_table[ $key ];
 						if ( isset( $current_user_product_rule['role_price'] ) && 'on' === $current_user_product_rule['role_price'] ) {
 							if ( ! empty( $multiple_role_option ) && ! empty( $value['users'] ) && ! isset( $value['roles'] ) ) {
@@ -1187,16 +1188,26 @@ class Elex_Price_Discount_Admin {
 			}
 			$reg_price = isset( $exchange_rates['reg_price'] ) && ! empty( $exchange_rates['reg_price'] ) ? $exchange_rates['reg_price'] : $reg_price;
 			$current_user_role = $this->current_user_role;
+			$current_user = wp_get_current_user();
+			$product_users_price = $product->get_meta( 'product_role_based_price_user_' . $current_user->user_email );
 			$product_user_role_price = $product->get_meta( 'product_role_based_price_' . $this->current_user_role );
-			if ( is_array( $product_user_role_price ) && isset( $product_user_role_price[0] ) && ! empty( $product_user_role_price[0] ) ) {
+			if ( ! empty( $product_users_price ) ) {
+				$product_user_price = $product_users_price;
+			} else if ( $product_user_role_price ) {
 				$product_user_price = $product_user_role_price;
 			}
+
 			if ( ! empty( $product_user_price ) ) {  
 				if ( $current_user_role ) {
 					$product_user_price_value = $product_user_price;
-					if ( ! empty( $product_user_price_value[0] ) ) { 
-						if ( is_numeric( $reg_price ) && $reg_price > $product->get_price() && $this->elex_rp_is_hide_regular_price( $product ) === false ) {
-							$price = wc_format_sale_price( wc_get_price_to_display( $product, array( 'price' => $reg_price ) ), wc_get_price_to_display( $product ) ) . $product->get_price_suffix();  
+					$product_price_adjustment_users = $product->get_meta( 'product_price_adjustment_for_users' );
+					$product_price_adjustment_roles = $product->get_meta( 'product_price_adjustment' );
+					if ( is_numeric( $product_user_price_value ) ) { 
+						$reg_price = isset( $exchange_rates['reg_price'] ) && ! empty( $exchange_rates['reg_price'] ) ? $exchange_rates['reg_price'] : $reg_price;
+						if ( ! empty( $product_user_price_value ) && ( ! empty( $product_price_adjustment_users[ $current_user->user_email ] ) || ! empty( $product_price_adjustment_roles[ $current_user_role ] ) && $product_user_price_value > $product->get_price() ) ) {
+							$price = wc_format_sale_price( wc_get_price_to_display( $product, array( 'price' => $product_user_price ) ), wc_get_price_to_display( $product ) ) . $product->get_price_suffix();  
+						} else if ( ! empty( $product_user_price_value ) && ( ! empty( $product_price_adjustment_users[ $current_user->user_email ] ) || ! empty( $product_price_adjustment_roles[ $current_user_role ] ) && $product_user_price_value < $product->get_price() ) ) {
+							$price = wc_price( wc_get_price_to_display( $product ) ) . $product->get_price_suffix();                        
 						} else {
 							$price = wc_price( wc_get_price_to_display( $product ) ) . $product->get_price_suffix();
 						}

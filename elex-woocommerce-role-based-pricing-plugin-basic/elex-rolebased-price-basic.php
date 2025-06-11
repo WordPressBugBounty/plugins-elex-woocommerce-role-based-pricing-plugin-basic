@@ -4,9 +4,9 @@
   Plugin Name: ELEX WooCommerce Role Based Pricing (BASIC)
   Plugin URI: https://elextensions.com/plugin/woocommerce-catalog-mode-wholesale-role-based-pricing/
   Description:  Hide add to cart for guest, specific user. Hide price for guest, specific user for simple products. Create user role specific product price. Enforce markup/discount on price for selected user roles.
-  Version: 1.5.4
+  Version: 1.5.5
   WC requires at least: 2.6.0
-  WC tested up to: 9.7
+  WC tested up to: 9.9
   Author: ELEXtensions
   Author URI: https://elextensions.com/
  Text Domain: eh-woocommerce-pricing-discount
