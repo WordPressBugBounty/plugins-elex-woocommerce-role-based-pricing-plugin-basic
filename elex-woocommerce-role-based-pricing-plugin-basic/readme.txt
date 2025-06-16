@@ -3,7 +3,7 @@ Contributors: ELEXtensions
 Tags: role based pricing, dynamic pricing, wholesale pricing, prices by user role, hide price
 Requires at least: 3.0.1
 Tested up to: 6.8
-Stable tag: 1.5.5
+Stable tag: 1.5.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,9 @@ We are a group of WordPress and WooCommerce enthusiasts with a vision to solve g
 If you are facing any issues, please create a topic at plugin support section on WordPress org. Our team will respond back soon.
 
 == Changelog ==
+= 1.5.6 =
+* Fixed PHP error related to the 'Replace Add to Cart' text functionality
+
 = 1.5.5 =
 * Made compatible with Woocommerce 9.9
 * Made compatible with Wordpress 6.8
@@ -315,12 +318,15 @@ If you are facing any issues, please create a topic at plugin support section on
 * Initial Push
 
 == Upgrade Notice ==
+= 1.5.6 =
+* Fixed PHP error related to the 'Replace Add to Cart' text functionality
+
 = 1.5.5 =
-* Made compatible with WooCommerce 9.9
-* Made compatible with WordPress 6.8
+* Made compatible with Woocommerce 9.9
+* Made compatible with Wordpress 6.8
 
 = 1.5.4 =
-* Made compatible with WooCommerce 9.7
+* Made compatible with Woocommerce 9.7
 * Made compatible with Tax Switch for Woocommerce Plugin.
 
 = 1.5.3 =
@@ -330,7 +336,7 @@ If you are facing any issues, please create a topic at plugin support section on
 
 
 = 1.5.2 =
-* Made Compatible with YITH WooCommerce Gift Cards plugin
+* Made Compatible with YITH Woocommerce Gift Cards plugin
 
 = 1.5.1 =
 * Fixed an issue where, if the product price was set to 0, it displayed "Read More" instead of "Add to Cart".

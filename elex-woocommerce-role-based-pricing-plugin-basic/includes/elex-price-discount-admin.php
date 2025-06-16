@@ -460,11 +460,11 @@ class Elex_Price_Discount_Admin {
 	public function elex_rp_add_to_cart_text_content_replace( $text ) {
 		$cart_text_content = $text;
 		 global $product;
-		if ( $this->elex_rp_get_product_type( $product ) === 'variable' || $this->elex_rp_get_product_type( $product ) === 'grouped' ) {
+		if ( empty( $product ) || $this->elex_rp_get_product_type( $product ) === 'variable' || $this->elex_rp_get_product_type( $product ) === 'grouped' ) {
 			return $cart_text_content;
 		}
-	   
 		$product_id = $this->elex_rp_get_product_id( $product );
+
 		if ( ( is_user_logged_in() ) ) {
 			$individual_prod_btn_text = $product->get_meta( 'product_adjustment_customize_addtocart_prod_btn_text_role' );
 			$replace_addtocart = $product->get_meta( 'eh_pricing_adjustment_product_customize_addtocart_user_role' );
@@ -1173,6 +1173,13 @@ class Elex_Price_Discount_Admin {
 	public function elex_rp_get_price_html( $price, $product ) {
 		global $wpdb;
 		if ( 'gift-card' !== $this->elex_rp_get_product_type( $product ) && ( '' === $product->get_price() || null === $product->get_price() ) ) {
+			if ( ( '' === $product->get_price() || null === $product->get_price() ) && $this->elex_rp_is_hide_price( $product ) ) {
+				if ( $this->elex_rp_is_price_hidden_in_product_meta( $product ) ) {
+					return $this->elex_rp_get_placeholder_text_product_hide_price( $product );
+				} else {
+					return $this->elex_rp_get_placeholder_text( $product, $price );
+				}
+			}
 			return '';
 		} 
 		if ( $this->elex_rp_get_product_type( $product ) === 'simple' ) {
