@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	global $post;
 	$product = isset( $post->ID ) ? wc_get_product( sanitize_text_field( $post->ID ) ) : '';
 	if ( ! empty( $product ) ) {
-		if ( WC()->version < '2.7.0' ) {
+		if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 			$product_type = $product->product_type;
 		} else {
 			$product_type = $product->get_type();

@@ -218,7 +218,7 @@ class Elex_Price_Discount_Admin {
 
 	// function to hide simple product from grouped product
 	public function elex_rp_add_filter_for_get_price() {
-		if ( WC()->version < '2.7.0' ) {
+		if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 			if ( 'regular' === $this->sales_method ) {
 				add_filter( 'woocommerce_get_regular_price', array( $this, 'elex_rp_get_price' ), 99, 2 ); //function to modify product sale price
 			} else {
@@ -239,7 +239,7 @@ class Elex_Price_Discount_Admin {
 	}
 
 	public function elex_rp_remove_filter_for_get_price() {
-		if ( WC()->version < '2.7.0' ) {
+		if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 			if ( 'regular' === $this->sales_method ) {
 				remove_filter( 'woocommerce_get_regular_price', array( $this, 'elex_rp_get_price' ), 99, 2 ); //function to modify product sale price
 			} else {
@@ -713,7 +713,7 @@ class Elex_Price_Discount_Admin {
 				if ( 'variation' === $temp_data ) {
 					$prdct_id = $this->elex_rp_get_product_category_using_id( $this->elex_rp_get_product_parent_id( $product ) );
 				} else {
-					if ( WC()->version < '2.7.0' ) {
+					if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 						$temp_post_id = $product->post->ID;
 					} else {
 						$temp_post_id = $product->get_id();
@@ -729,7 +729,7 @@ class Elex_Price_Discount_Admin {
 				if ( 'variation' === $temp_data ) {
 					$prdct_id = $this->elex_rp_get_product_category_using_id( $this->elex_rp_get_product_parent_id( $product ) );
 				} else {
-					if ( WC()->version < '2.7.0' ) {
+					if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 						$temp_post_id = $product->post->ID;
 					} else {
 						$temp_post_id = $product->get_id();
@@ -770,7 +770,7 @@ class Elex_Price_Discount_Admin {
 		if ( 'variation' === $temp_data ) {
 			$prdct_id = $this->elex_rp_get_product_category_using_id( $this->elex_rp_get_product_parent_id( $product ) );
 		} else {
-			if ( WC()->version < '2.7.0' ) {
+			if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 				$temp_post_id = $product->post->ID;
 			} else {
 				$temp_post_id = $product->get_id();
@@ -1349,7 +1349,7 @@ class Elex_Price_Discount_Admin {
 		if ( empty( $product ) ) {
 			return 'not a valid object';
 		}
-		if ( WC()->version < '2.7.0' ) {
+		if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 			$product_type = $product->product_type;
 		} else {
 			$product_type = $product->get_type();
@@ -1361,7 +1361,7 @@ class Elex_Price_Discount_Admin {
 		if ( empty( $product ) ) {
 			return 'not a valid object';
 		}
-		if ( WC()->version < '2.7.0' ) {
+		if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 			$product_id = $product->post->id;
 		} else {
 			$product_id = $product->get_id();
@@ -1373,7 +1373,7 @@ class Elex_Price_Discount_Admin {
 		if ( empty( $product ) ) {
 			return 'not a valid object';
 		}
-		if ( WC()->version < '2.7.0' ) {
+		if ( version_compare( WC()->version, '2.7.0', '<' ) ) {
 			$product_parent_id = $product->parent->id;
 		} else {
 			$product_parent_id = $product->get_parent_id();
@@ -1404,8 +1404,8 @@ class Elex_Price_Discount_Admin {
 				'{price_excluding_tax}',
 			);
 			$replace = array(
-				wc_price( ( WC()->version < '2.7.0' ) ? $product->get_price_including_tax() : wc_get_price_including_tax( $product ) ),
-				wc_price( ( WC()->version < '2.7.0' ) ? $product->get_price_excluding_tax() : wc_get_price_excluding_tax( $product ) ),
+				wc_price( (version_compare( WC()->version, '2.7.0', '<' ) ) ? $product->get_price_including_tax() : wc_get_price_including_tax( $product ) ),
+				wc_price( (version_compare( WC()->version, '2.7.0', '<' ) ) ? $product->get_price_excluding_tax() : wc_get_price_excluding_tax( $product ) ),
 			);
 			$price_suffix = str_replace( $find, $replace, $price_suffix );
 			$price .= $price_suffix;
