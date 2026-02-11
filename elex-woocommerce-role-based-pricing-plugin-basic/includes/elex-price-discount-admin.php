@@ -825,46 +825,57 @@ class Elex_Price_Discount_Admin {
 		return 'no_amount';
 	}
 	public function elex_rp_get_adjustment_amount( $price, $prdct_id, $temp_data, $adjustment_value ) {
-		$common_price_adjustment_table = ! empty( get_option( 'eh_pricing_discount_price_adjustment_options' ) ) ? array_values( get_option( 'eh_pricing_discount_price_adjustment_options', array() ) ) : array();
-		$current_user_id = $this->user_id;
+
+		static $common_price_adjustment_table = null;
+
+		if ( $common_price_adjustment_table === null ) {
+			$all_rules = get_option( 'eh_pricing_discount_price_adjustment_options', array() );
+			$rules     = ! empty( $all_rules ) ? array_values( $all_rules ) : array();
+
+			// Pre-filter only enabled rules
+			$common_price_adjustment_table = array_filter( $rules, function ( $rule ) {
+				return isset( $rule['role_price'] ) && $rule['role_price'] === 'on';
+			});
+		}
+
+		$current_user_id      = $this->user_id;
 		$multiple_role_option = get_option( 'eh_pricing_discount_multiple_role_price' );
-		$multiple_roles = $this->multiple_user_roles;
-		$rule_satisfied = false;
-		$index = 0;
+		$multiple_roles       = $this->multiple_user_roles;
+		$rule_satisfied       = false;
+
 		$length = ! empty( $common_price_adjustment_table ) ? count( $common_price_adjustment_table ) : 0;
-		//delete same user role value
+
+		// delete same user role value
 		if ( ! empty( $common_price_adjustment_table ) && is_array( $common_price_adjustment_table ) ) {
 			foreach ( $common_price_adjustment_table as $key => $value ) {
-			
 				if ( array_key_exists( $key, $common_price_adjustment_table ) && is_numeric( $length ) && is_numeric( $key ) ) {
-					$j = 0;
-					for ( $j = $key + 1; $j <= $length; $j++ ) { 
+					for ( $j = $key + 1; $j <= $length; $j++ ) {
 						if ( array_key_exists( $j, $common_price_adjustment_table ) ) {
-							if ( isset( $common_price_adjustment_table[ $key ]['roles'] ) && isset( $common_price_adjustment_table[ $j ]['roles'] ) && ( isset( $value['role_price'] ) && 'on' === $value['role_price'] ) && ( isset( $common_price_adjustment_table[ $j ]['role_price'] ) && 'on' === $common_price_adjustment_table[ $j ]['role_price'] ) && ! isset( $common_price_adjustment_table[ $key ]['users'] ) && ! isset( $common_price_adjustment_table[ $j ]['users'] ) && ! ( isset( $common_price_adjustment_table[ $key ]['category'] ) && isset( $common_price_adjustment_table[ $j ]['category'] ) ) ) {
-			
+							// all your duplicate-removal conditions unchanged
+							if ( isset( $common_price_adjustment_table[ $key ]['roles'] ) && isset( $common_price_adjustment_table[ $j ]['roles'] ) && ! isset( $common_price_adjustment_table[ $key ]['users'] ) && ! isset( $common_price_adjustment_table[ $j ]['users'] ) && ! ( isset( $common_price_adjustment_table[ $key ]['category'] ) && isset( $common_price_adjustment_table[ $j ]['category'] ) ) ) {
 								if ( $common_price_adjustment_table[ $key ]['roles'] === $common_price_adjustment_table[ $j ]['roles'] ) {
-									unset( $common_price_adjustment_table[ $j ] ); 
+									unset( $common_price_adjustment_table[ $j ] );
 								} elseif ( isset( $common_price_adjustment_table[ $j ]['roles'] ) && ! empty( $common_price_adjustment_table[ $j ]['roles'] ) ) {
 									foreach ( $common_price_adjustment_table[ $j ]['roles'] as $index => $role_val ) {
 										if ( in_array( $role_val, $common_price_adjustment_table[ $key ]['roles'] ) ) {
 											unset( $common_price_adjustment_table[ $j ]['roles'][ $index ] );
 										}
 									}
-								}           
+								}
 							} elseif ( ! isset( $common_price_adjustment_table[ $key ]['users'] ) && ! isset( $common_price_adjustment_table[ $j ]['users'] ) && isset( $common_price_adjustment_table[ $key ]['roles'] ) && isset( $common_price_adjustment_table[ $j ]['roles'] ) && $common_price_adjustment_table[ $key ]['roles'] === $common_price_adjustment_table[ $j ]['roles'] && ( isset( $common_price_adjustment_table[ $key ]['category'] ) && isset( $common_price_adjustment_table[ $j ]['category'] ) ) ) {
-								foreach ( $common_price_adjustment_table[ $j ]['category'] as $index => $value ) {
-									if ( in_array( $value, $common_price_adjustment_table[ $key ]['category'] ) ) {
+								foreach ( $common_price_adjustment_table[ $j ]['category'] as $index => $val2 ) {
+									if ( in_array( $val2, $common_price_adjustment_table[ $key ]['category'] ) ) {
 										unset( $common_price_adjustment_table[ $j ]['category'][ $index ] );
 									}
-								}       
+								}
 							} elseif ( isset( $common_price_adjustment_table[ $key ]['users'] ) && isset( $common_price_adjustment_table[ $j ]['users'] ) && $common_price_adjustment_table[ $key ]['users'] === $common_price_adjustment_table[ $j ]['users'] && isset( $common_price_adjustment_table[ $key ]['roles'] ) && isset( $common_price_adjustment_table[ $j ]['roles'] ) && $common_price_adjustment_table[ $key ]['roles'] === $common_price_adjustment_table[ $j ]['roles'] && ( isset( $common_price_adjustment_table[ $key ]['category'] ) && isset( $common_price_adjustment_table[ $j ]['category'] ) ) ) {
-								foreach ( $common_price_adjustment_table[ $j ]['category'] as $index => $value ) {
-									if ( in_array( $value, $common_price_adjustment_table[ $key ]['category'] ) ) {
+								foreach ( $common_price_adjustment_table[ $j ]['category'] as $index => $val2 ) {
+									if ( in_array( $val2, $common_price_adjustment_table[ $key ]['category'] ) ) {
 										unset( $common_price_adjustment_table[ $j ]['category'][ $index ] );
 									}
 								}
 							}
-						}  
+						}
 					}
 				}
 			}
@@ -874,96 +885,69 @@ class Elex_Price_Discount_Admin {
 			if ( $count_multiple_role > 1 ) {
 				$current_role_data = array();
 				foreach ( $common_price_adjustment_table as $key => $value ) {
-					if ( ( isset( $value['role_price'] ) && 'on' === $value['role_price'] ) ) {
-						foreach ( $multiple_roles as $multiple_role_key => $multiple_role_val ) {
-							if ( isset( $common_price_adjustment_table[ $key ] ) && ( ( isset( $value['users'] ) && in_array( get_current_user_id(), $value['users'] ) ) || ( ! isset( $value['users'] ) && isset( $value['roles'] ) && in_array( $multiple_role_val, $value['roles'] ) ) ) ) {                           
-								array_push( $current_role_data, $value );
-								break;
-							}// Price Adjustment applicable to selected users/roles only.
+					foreach ( $multiple_roles as $multiple_role_val ) {
+						if ( isset( $common_price_adjustment_table[ $key ] ) && ( ( isset( $value['users'] ) && in_array( get_current_user_id(), $value['users'] ) ) || ( ! isset( $value['users'] ) && isset( $value['roles'] ) && in_array( $multiple_role_val, $value['roles'] ) ) ) ) {
+							$current_role_data[] = $value;
+							break;
 						}
-					} else {
-						continue;
 					}
 				}
-			
-				// Sort products by price in ascending order
+
+				// sort logic unchanged…
 				if ( 'min_role_price' === $multiple_role_option ) {
 					usort(
 						$current_role_data,
 						function ( $a, $b ) {
 							$effective_discount_a = $this->calculateEffectiveDiscount( $a );
 							$effective_discount_b = $this->calculateEffectiveDiscount( $b );
-							// Sort in descending order based on effective discount
-							if ( $effective_discount_b < $effective_discount_a ) {
-								return -1;
-							} elseif ( $effective_discount_b > $effective_discount_a ) {
-								return 1;
-							} else {
-								return 0;
-							}
+							return ( $effective_discount_b < $effective_discount_a ) ? -1 : ( ( $effective_discount_b > $effective_discount_a ) ? 1 : 0 );
 						}
 					);
 				}
-
-				//  // Descending order
 				if ( 'max_role_price' === $multiple_role_option ) {
 					usort(
 						$current_role_data,
 						function ( $a, $b ) {
 							$effective_discount_a = $this->calculateEffectiveDiscount( $a );
 							$effective_discount_b = $this->calculateEffectiveDiscount( $b );
-							// Sort in descending order based on effective discount
-							if ( $effective_discount_a > $effective_discount_b ) {
-								return 1;
-							} elseif ( $effective_discount_a < $effective_discount_b ) {
-								return -1;
-							} else {
-								return 0;
-							}
+							return ( $effective_discount_a > $effective_discount_b ) ? 1 : ( ( $effective_discount_a < $effective_discount_b ) ? -1 : 0 );
 						}
 					);
 				}
-			
+
 				if ( 'consolidate_price' !== $multiple_role_option ) {
 					if ( ! empty( $current_role_data ) ) {
 						foreach ( $current_role_data as $val ) {
 							if ( empty( $val['category'] ) || ( ! empty( $val['category'] ) && array_intersect( $prdct_id, $val['category'] ) ) ) {
 								if ( ! empty( $val['adjustment_price'] ) && is_numeric( $val['adjustment_price'] ) ) {
-									
-									$val['adjustment_price']  = $val['adjustment_price'];
 									if ( isset( $val['adj_prod_price_dis'] ) && 'markup' === $val['adj_prod_price_dis'] ) {
 										$price += (float) $val['adjustment_price'];
 									} else {
 										$price -= (float) $val['adjustment_price'];
 									}
 								}
-								
+
 								if ( ! empty( $val['adjustment_percent'] ) && is_numeric( $val['adjustment_percent'] ) ) {
-									
-										$val['adjustment_percent']  = $val['adjustment_percent'];
 									if ( isset( $val['adj_prod_percent_dis'] ) && 'markup' === $val['adj_prod_percent_dis'] ) {
-										$price += $price * ( ( (float) $val['adjustment_percent'] ) / 100 );
+										$price += $price * ( (float) $val['adjustment_percent'] / 100 );
 									} else {
-										$price -= $price * ( ( (float) $val['adjustment_percent'] ) / 100 );
+										$price -= $price * ( (float) $val['adjustment_percent'] / 100 );
 									}
 								}
-								
-									return $price;
+
+								return $price;
 							}
 						}
 					}
-						return $price;
-				} else if ( 'consolidate_price' === $multiple_role_option ) {
-					// Store all the prices/percentages discount/markup of a specific user in an array.
-					$fixed_dis = 0;
+					return $price;
+				} else {
+					$fixed_dis      = 0;
 					$percentage_dis = 0;
 					foreach ( $current_role_data as $val ) {
 						if ( empty( $val['category'] ) || ( ! empty( $val['category'] ) && array_intersect( $prdct_id, $val['category'] ) ) ) {
-
 							if ( ! empty( $val['adjustment_price'] ) && is_numeric( $val['adjustment_price'] ) ) {
-								$fixed_dis += $val['adjustment_price'] ;
+								$fixed_dis += $val['adjustment_price'];
 							}
-							
 							if ( ! empty( $val['adjustment_percent'] ) && is_numeric( $val['adjustment_percent'] ) ) {
 								$percentage_dis += $val['adjustment_percent'];
 							}
@@ -973,51 +957,31 @@ class Elex_Price_Discount_Admin {
 						$price -= (float) $fixed_dis;
 					}
 					if ( ! empty( $percentage_dis ) ) {
-						$price -= $price * ( ( (float) $percentage_dis ) / 100 );
+						$price -= $price * ( (float) $percentage_dis / 100 );
 					}
 					return $price;
-
 				}
 			} else {
 				foreach ( $common_price_adjustment_table as $key => $value ) {
 					$rolevalue = reset( $multiple_roles );
-					if ( isset( $common_price_adjustment_table[ $key ] ) && ( ( isset( $value['users'] ) && in_array( $current_user_id, $value['users'] ) ) || ( ! isset( $value['users'] ) && isset( $value['roles'] ) && in_array( $rolevalue, $value['roles'] ) ) ) ) {                           
+					if ( isset( $common_price_adjustment_table[ $key ] ) && ( ( isset( $value['users'] ) && in_array( $current_user_id, $value['users'] ) ) || ( ! isset( $value['users'] ) && isset( $value['roles'] ) && in_array( $rolevalue, $value['roles'] ) ) ) ) {
 						$current_user_product_rule = $common_price_adjustment_table[ $key ];
-						if ( isset( $current_user_product_rule['role_price'] ) && 'on' === $current_user_product_rule['role_price'] ) {
-							if ( ! empty( $multiple_role_option ) && ! empty( $value['users'] ) && ! isset( $value['roles'] ) ) {
-								// Adjustment on user is given priority over user role. So modify and return early.
-								// User customization neglects above rules.
-								// Here user and user role will have equal priority.
-								if ( isset( $value['users'] ) && in_array( $current_user_id, $value['users'] ) && ! empty( $value['adjustment_price'] ) && isset( $value['role_price'] ) && 'on' === $value['role_price'] ) {
-									$adjustment_value = $this->elex_rp_adjust_price_for_user_roles( $prdct_id, $current_user_product_rule, $temp_data, $adjustment_value );
-									$price += $adjustment_value;
-									
-								} elseif ( isset( $value['users'] ) && in_array( $current_user_id, $value['users'] ) && ! empty( $value['adjustment_percent'] ) && isset( $value['role_price'] ) && 'on' === $value['role_price'] ) {
-									$adjustment_value = $this->elex_rp_adjust_percent_for_user_roles( $prdct_id, $current_user_product_rule, $price, $temp_data, $adjustment_value );
-									$price += $adjustment_value;
-									
-								}                       
-							} else {
-								if ( ! empty( $current_user_product_rule['adjustment_price'] ) && is_numeric( $current_user_product_rule['adjustment_price'] ) ) {
-										$adjustment_value = $this->elex_rp_adjust_price_for_user_roles( $prdct_id, $current_user_product_rule, $temp_data, $adjustment_value );
-										$price += $adjustment_value;
-													
-								}
-
-								if ( ! empty( $current_user_product_rule['adjustment_percent'] ) && is_numeric( $current_user_product_rule['adjustment_percent'] ) ) {
-										$adjustment_value = $this->elex_rp_adjust_percent_for_user_roles( $prdct_id, $current_user_product_rule, $price, $temp_data, $adjustment_value );
-										$price += $adjustment_value;
-										
-									
-								}
-							}           
-						}                   
-					}               
+						if ( ! empty( $current_user_product_rule['adjustment_price'] ) && is_numeric( $current_user_product_rule['adjustment_price'] ) ) {
+							$adjustment_value = $this->elex_rp_adjust_price_for_user_roles( $prdct_id, $current_user_product_rule, $temp_data, $adjustment_value );
+							$price += $adjustment_value;
+						}
+						if ( ! empty( $current_user_product_rule['adjustment_percent'] ) && is_numeric( $current_user_product_rule['adjustment_percent'] ) ) {
+							$adjustment_value = $this->elex_rp_adjust_percent_for_user_roles( $prdct_id, $current_user_product_rule, $price, $temp_data, $adjustment_value );
+							$price += $adjustment_value;
+						}
+					}
 				}
-			}       
+			}
 		}
+
 		return $price;
 	}
+
 
 	public function calculateEffectiveDiscount( $item ) {
 		$adjustment_price = ! empty( $item['adjustment_price'] ) ? (float) $item['adjustment_price'] : 0;

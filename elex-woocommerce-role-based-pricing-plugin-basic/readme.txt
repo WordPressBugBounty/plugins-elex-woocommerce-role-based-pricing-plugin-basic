@@ -2,8 +2,8 @@
 Contributors: ELEXtensions
 Tags: role based pricing, dynamic pricing, wholesale pricing, prices by user role, hide price
 Requires at least: 3.0.1
-Tested up to: 6.8
-Stable tag: 1.5.7
+Tested up to: 6.9
+Stable tag: 1.5.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -105,6 +105,10 @@ We are a group of WordPress and WooCommerce enthusiasts with a vision to solve g
 If you are facing any issues, please create a topic at plugin support section on WordPress org. Our team will respond back soon.
 
 == Changelog ==
+
+= 1.5.8 =
+* Made compatible with WordPress 6.9
+
 = 1.5.7 =
 * Tested OK with WooCommerce 10
 
@@ -321,6 +325,10 @@ If you are facing any issues, please create a topic at plugin support section on
 * Initial Push
 
 == Upgrade Notice ==
+
+= 1.5.8 =
+* Made compatible with WordPress 6.9
+
 = 1.5.7 =
 * Tested OK with WooCommerce 10
 
